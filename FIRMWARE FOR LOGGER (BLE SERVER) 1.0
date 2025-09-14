@@ -1,0 +1,75 @@
+/*
+ * FIRMWARE FOR LOGGER (BLE SERVER)
+ * Version 1.0
+ */
+
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <TFT_eSPI.h>
+
+// Unique identifier for our service (UUID)
+// Generated online to avoid conflicts with other BLE devices
+#define SERVICE_UUID        "199a0819-686c-4338-a268-e413028d1323"
+
+TFT_eSPI tft = TFT_eSPI();
+
+// Class for handling connect/disconnect events
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+      Serial.println("Client Connected!");
+      tft.fillScreen(TFT_BLACK);
+      tft.drawString("Client Connected!", tft.width() / 2, tft.height() / 2);
+    }
+
+    void onDisconnect(BLEServer* pServer) {
+      Serial.println("Client Disconnected!");
+      tft.fillScreen(TFT_BLACK);
+      tft.drawString("Waiting for connection...", tft.width() / 2, tft.height() / 2);
+      // Restart advertising so a client can connect again
+      pServer->getAdvertising()->start();
+    }
+};
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Starting BLE Server (Logger)...");
+
+  // Screen setup
+  tft.init();
+  tft.setRotation(1);
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextSize(2);
+  tft.fillScreen(TFT_BLACK);
+  tft.drawString("BLE Server Mode", tft.width() / 2, 20);
+  tft.drawString("Waiting for connection...", tft.width() / 2, tft.height() / 2);
+
+  // Initialize BLE device with the name "TempLogger"
+  BLEDevice::init("TempLogger");
+
+  // Create BLE server
+  BLEServer *pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  // Create BLE service
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+
+  // (We will later add a characteristic here for data transfer)
+
+  // Start the service
+  pService->start();
+
+  // Start advertising so clients can find us
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);
+  pAdvertising->setMinPreferred(0x12);
+  BLEDevice::startAdvertising();
+  
+  Serial.println("Server is advertising. Waiting for a client...");
+}
+
+void loop() {
+  // Currently doing nothing, all logic is in events
+  delay(2000);
+}
