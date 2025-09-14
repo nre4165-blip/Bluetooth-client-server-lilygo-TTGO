@@ -39,3 +39,27 @@
 
 # debug information files
 *.dwo
+
+# Build / output folders
+/build/
+/.pio/
+
+# Compiled binaries
+*.elf
+*.bin
+*.hex
+*.map
+
+# Temporary / backup files
+*.tmp
+*.log
+*.bak
+*.swp
+
+# IDE / editor folders
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
